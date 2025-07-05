@@ -1,0 +1,13 @@
+node_modules/
+demo-screenshots/
+Modules/
+.git/
+.github/
+releases/
+.DS_Store
+.env
+.env.*
+.phpunit.result.cache
+npm-debug.log
+yarn-error.log
+storage/*.key
