@@ -24,7 +24,7 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return $this->error('Validation failed', $validator->errors(), 422);
+            return $this->error('Validation failed', $validator->errors(), 400);
         }
 
         $imagePath = $request->hasFile('image')
