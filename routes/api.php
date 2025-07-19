@@ -81,6 +81,14 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/approve/{id}', [ExpenseController::class, 'approveExpense']);
     });
 
+
+    Route::prefix('family')->group(function () {
+        Route::post('/create', [FamilyController::class, 'create']);
+        Route::post('/invite', [FamilyController::class, 'inviteMember']);
+        Route::post('/accept-invitation', [FamilyController::class, 'acceptInvitation']);
+        Route::get('/members', [FamilyController::class, 'listMembers']);
+    });
+
     Route::prefix('categories')->group(function () {
         Route::post('/add', [CategoryController::class, 'store']);
         Route::get('/all', [CategoryController::class, 'index']);

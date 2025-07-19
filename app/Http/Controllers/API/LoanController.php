@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\API;
+
 use App\Http\Controllers\Controller;
 use App\Models\Loan;
 use App\Models\LoanRepayment;
@@ -8,7 +9,6 @@ use Carbon\Carbon;
 use App\Models\Family;
 use Illuminate\Support\Facades\Auth;
 use App\Models\LoanCategory;
-
 use Illuminate\Http\Request;
 
 class LoanController extends Controller
@@ -36,7 +36,7 @@ class LoanController extends Controller
             'status' => 'pending'
         ]);
 
-        return response()->json(['message' => 'Loan created', 'loan' => $loan]);
+        return $this->success('Loan created successfully', $loan);
     }
 
     public function index()
@@ -47,13 +47,13 @@ class LoanController extends Controller
             ->where('family_id', $family->id)
             ->get();
 
-        return response()->json($loans);
+        return $this->success('Loan list retrieved successfully', $loans);
     }
-
 
     public function show($id)
     {
-        $loan = Loan::with(['repayments', 'contributions.user','category'])->findOrFail($id);
-        return response()->json($loan);
+        $loan = Loan::with(['repayments', 'contributions.user', 'category'])->findOrFail($id);
+
+        return $this->success('Loan details retrieved successfully', $loan);
     }
 }

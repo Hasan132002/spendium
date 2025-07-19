@@ -1,70 +1,73 @@
 <?php
 
 namespace App\Http\Controllers\API;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\{Goal, GoalContribution, Saving, SavingsTransaction, Budget, BudgetTransaction, Family};
 
-class SavingsController extends Controller {
-    public function mySavings() {
+class SavingsController extends Controller
+{
+    public function mySavings()
+    {
         $saving = Saving::firstOrCreate(['user_id' => Auth::id()], ['amount' => 0]);
-        return response()->json($saving);
+        return $this->success('Savings fetched successfully', $saving);
     }
 
-   public function addToSavings(Request $request) {
-    $request->validate(['amount' => 'required|numeric|min:1']);
+    public function addToSavings(Request $request)
+    {
+        $request->validate(['amount' => 'required|numeric|min:1']);
 
-    $user = Auth::user();
-    $amount = $request->amount;
+        $user = Auth::user();
+        $amount = $request->amount;
 
-    // Update or create user's saving
-    $saving = Saving::firstOrCreate(['user_id' => $user->id]);
-    $saving->total += $amount;
-    $saving->save();
+        $saving = Saving::firstOrCreate(['user_id' => $user->id]);
+        $saving->total += $amount;
+        $saving->save();
 
-    // Create savings transaction
-    SavingsTransaction::create([
+        SavingsTransaction::create([
             'saving_id' => $saving->id,
+            'user_id' => $user->id,
+            'action' => 'add',
+            'amount' => $amount,
+            'source' => 'manual',
+        ]);
 
-        'user_id' => $user->id,
-        'action' => 'add',
-        'amount' => $amount,
-        'source' => 'manual',
-    ]);
+        $month = now()->format('Y-m');
+        $familyId = $user->familyMember?->family_id;
 
-    // Also update Budget and BudgetTransaction
-$month = now()->format('Y-m');
-$familyId = $user->familyMember?->family_id;
+        if (!$familyId) {
+            return $this->error('Family ID not found for user', null, 422);
+        }
 
-if (!$familyId) {
-    return response()->json(['error' => 'Family ID not found for user'], 422);
-}    $budget = Budget::firstOrCreate(
-        ['user_id' => $user->id, 'month' => $month,'family_id' => $familyId,],
-        ['amount' => 0]
-    );
+        $budget = Budget::firstOrCreate(
+            ['user_id' => $user->id, 'month' => $month, 'family_id' => $familyId],
+            ['amount' => 0]
+        );
 
-    $budget->amount += $amount;
-    $budget->save();
+        $budget->amount += $amount;
+        $budget->save();
 
-    BudgetTransaction::create([
-        'budget_id' => $budget->id,
-        'amount' => $amount,
-        'category' => 'manual_saving', // optional category
-        'note' => 'Manual saving added to budget',
-    ]);
+        BudgetTransaction::create([
+            'budget_id' => $budget->id,
+            'amount' => $amount,
+            'category' => 'manual_saving',
+            'note' => 'Manual saving added to budget',
+        ]);
 
-    return response()->json(['message' => 'Amount added to savings and budget']);
-}
-
-
-    public function savingsHistory() {
-        $history = SavingsTransaction::where('user_id', Auth::id())->orderBy('created_at', 'desc')->get();
-        return response()->json($history);
+        return $this->success('Amount added to savings and budget');
     }
 
-    public function transferToGoal(Request $request) {
+    public function savingsHistory()
+    {
+        $history = SavingsTransaction::where('user_id', Auth::id())->orderBy('created_at', 'desc')->get();
+        return $this->success('Savings history fetched', $history);
+    }
+
+    public function transferToGoal(Request $request)
+    {
         $request->validate([
             'goal_id' => 'required|exists:goals,id',
             'amount' => 'required|numeric|min:1'
@@ -73,7 +76,7 @@ if (!$familyId) {
         $saving = Saving::firstOrCreate(['user_id' => Auth::id()]);
 
         if ($saving->amount < $request->amount) {
-            return response()->json(['error' => 'Insufficient savings'], 422);
+            return $this->error('Insufficient savings', null, 422);
         }
 
         $saving->amount -= $request->amount;
@@ -93,10 +96,11 @@ if (!$familyId) {
             'source_id' => $request->goal_id
         ]);
 
-        return response()->json(['message' => 'Transferred to goal']);
+        return $this->success('Transferred to goal');
     }
 
-    public function endOfMonthRollover() {
+    public function endOfMonthRollover()
+    {
         $user = Auth::user();
         $month = Carbon::now()->format('Y-m');
 
@@ -124,6 +128,6 @@ if (!$familyId) {
             ]);
         }
 
-        return response()->json(['message' => 'Rollover complete', 'amount' => $totalRemaining]);
+        return $this->success('Rollover complete', ['amount' => $totalRemaining]);
     }
 }

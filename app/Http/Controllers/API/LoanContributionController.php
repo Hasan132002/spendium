@@ -1,11 +1,12 @@
 <?php
 
 namespace App\Http\Controllers\API;
+
 use App\Http\Controllers\Controller;
 use App\Models\{LoanCategory, Loan, LoanRepayment, LoanContribution, Family};
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class LoanContributionController extends Controller
 {
@@ -25,13 +26,12 @@ class LoanContributionController extends Controller
             'status' => 'pending'
         ]);
 
-        return response()->json(['message' => 'Contribution offered', 'contribution' => $contribution]);
+        return $this->success('Contribution offered', $contribution);
     }
 
     public function myContributions()
     {
         $user = Auth::user();
-
         $family = Family::where('father_id', $user->id)->first();
 
         if ($family) {
@@ -41,21 +41,20 @@ class LoanContributionController extends Controller
                 'loan.category:id,name',
                 'user:id,name'
             ])
-                ->whereIn('user_id', $memberIds)
-                ->orderBy('created_at', 'desc')
-                ->get();
+            ->whereIn('user_id', $memberIds)
+            ->orderBy('created_at', 'desc')
+            ->get();
         } else {
             $contributions = LoanContribution::with([
                 'loan.category:id,name'
             ])
-                ->where('user_id', $user->id)
-                ->orderBy('created_at', 'desc')
-                ->get();
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
         }
 
-        return response()->json($contributions);
+        return $this->success('Contributions fetched', $contributions);
     }
-
 
     public function approve($id)
     {
@@ -63,17 +62,19 @@ class LoanContributionController extends Controller
         $loan = $contribution->loan;
         $family = Family::where('father_id', Auth::id())->first();
 
-        if ($loan->family_id !== $family->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+        if (!$family || $loan->family_id !== $family->id) {
+            return $this->error('Unauthorized', null, 403);
         }
 
         $loan->remaining_amount -= $contribution->amount;
+
         if ($loan->remaining_amount <= 0) {
             $loan->remaining_amount = 0;
             $loan->status = 'paid';
         } elseif ($loan->remaining_amount < $loan->amount) {
             $loan->status = 'partially_paid';
         }
+
         $loan->save();
 
         $contribution->status = 'approved';
@@ -86,7 +87,7 @@ class LoanContributionController extends Controller
             'note' => 'Contribution by ' . $contribution->user->name
         ]);
 
-        return response()->json(['message' => 'Contribution approved and applied to loan']);
+        return $this->success('Contribution approved and applied to loan');
     }
 
     public function decline($id)
@@ -95,13 +96,13 @@ class LoanContributionController extends Controller
         $loan = $contribution->loan;
         $family = Family::where('father_id', Auth::id())->first();
 
-        if ($loan->family_id !== $family->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+        if (!$family || $loan->family_id !== $family->id) {
+            return $this->error('Unauthorized', null, 403);
         }
 
         $contribution->status = 'declined';
         $contribution->save();
 
-        return response()->json(['message' => 'Contribution declined']);
+        return $this->success('Contribution declined');
     }
 }

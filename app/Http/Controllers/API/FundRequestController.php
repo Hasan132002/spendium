@@ -4,7 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\{FundRequest, Family, Budget, Category, Expense,BudgetTransaction};
+use App\Models\{FundRequest, Family, Budget, Category, Expense, BudgetTransaction};
 use Carbon\Carbon;
 
 class FundRequestController extends Controller
@@ -20,19 +20,19 @@ class FundRequestController extends Controller
         $familyMember = auth()->user()->familyMember;
 
         if (!$familyMember || $familyMember->role === 'father') {
-            return response()->json(['error' => 'Only mother/child can request funds'], 403);
+            return $this->error('Only mother/child can request funds', null, 403);
         }
 
         $fund = FundRequest::create([
-            'user_id' => auth()->id(),
-            'family_id' => $familyMember->family_id,
+            'user_id'     => auth()->id(),
+            'family_id'   => $familyMember->family_id,
             'category_id' => $request->category_id,
-            'amount' => $request->amount,
-            'note' => $request->note,
-            'status' => 'pending',
+            'amount'      => $request->amount,
+            'note'        => $request->note,
+            'status'      => 'pending',
         ]);
 
-        return response()->json(['message' => 'Request submitted', 'fund' => $fund]);
+        return $this->success('Request submitted', $fund);
     }
 
     public function approve(Request $request, $id)
@@ -45,48 +45,43 @@ class FundRequestController extends Controller
         $family = Family::where('father_id', auth()->id())->first();
 
         if (!$family || $fund->family_id !== $family->id) {
-            return response()->json(['error' => 'Not authorized'], 403);
+            return $this->error('Not authorized', null, 403);
         }
 
         $approvedAmount = $request->amount ?? $fund->amount;
 
-        // Check and deduct from total family budget
         $mainBudget = Budget::where('family_id', $family->id)
                             ->whereNull('user_id')
                             ->where('category_id', $fund->category_id)
                             ->first();
 
         if (!$mainBudget || $mainBudget->amount < $approvedAmount) {
-            return response()->json(['error' => 'Insufficient family budget'], 400);
+            return $this->error('Insufficient family budget', null, 400);
         }
 
-        // Deduct from total budget
         $mainBudget->amount -= $approvedAmount;
         $mainBudget->save();
 
-        // Mark fund request approved
         $fund->status = 'approved';
         $fund->amount = $approvedAmount;
         $fund->save();
 
-        // Create budget entry for user
         $assignedBudget = Budget::create([
-            'family_id' => $fund->family_id,
-            'user_id' => $fund->user_id,
+            'family_id'   => $fund->family_id,
+            'user_id'     => $fund->user_id,
             'category_id' => $fund->category_id,
-            'amount' => $approvedAmount
+            'amount'      => $approvedAmount
         ]);
 
         BudgetTransaction::create([
-    'budget_id' => $mainBudget->id,
-    'user_id' => auth()->id(),
-    'action' => 'deduct',
-    'amount' => $approvedAmount,
-    'source' => 'fund_request',
-    'source_id' => $fund->id,
-]);
+            'budget_id'  => $mainBudget->id,
+            'user_id'    => auth()->id(),
+            'action'     => 'deduct',
+            'amount'     => $approvedAmount,
+            'source'     => 'fund_request',
+            'source_id'  => $fund->id,
+        ]);
 
-        // Automatically create expense record
         Expense::create([
             'user_id'     => $fund->user_id,
             'budget_id'   => $assignedBudget->id,
@@ -98,7 +93,7 @@ class FundRequestController extends Controller
             'approved'    => true
         ]);
 
-        return response()->json(['message' => 'Fund approved & assigned with expense recorded']);
+        return $this->success('Fund approved & assigned with expense recorded');
     }
 
     public function decline($id)
@@ -107,23 +102,23 @@ class FundRequestController extends Controller
         $family = Family::where('father_id', auth()->id())->first();
 
         if (!$family || $fund->family_id !== $family->id) {
-            return response()->json(['error' => 'Not authorized'], 403);
+            return $this->error('Not authorized', null, 403);
         }
 
         $fund->status = 'rejected';
         $fund->save();
 
-        return response()->json(['message' => 'Fund request declined']);
+        return $this->success('Fund request declined');
     }
 
     public function myRequests()
     {
         $requests = FundRequest::where('user_id', auth()->id())
-                    ->with('category')
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+            ->with('category')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        return response()->json($requests);
+        return $this->success('My requests retrieved', $requests);
     }
 
     public function allFamilyRequests()
@@ -131,17 +126,14 @@ class FundRequestController extends Controller
         $family = Family::where('father_id', auth()->id())->first();
 
         if (!$family) {
-            return response()->json(['error' => 'Family not found'], 404);
+            return $this->error('Family not found', null, 404);
         }
 
         $requests = FundRequest::where('family_id', $family->id)
-                    ->with([
-                        'category:id,name',
-                        'user:id,name,email'
-                    ])
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+            ->with(['category:id,name', 'user:id,name,email'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        return response()->json($requests);
+        return $this->success('Family requests retrieved', $requests);
     }
 }

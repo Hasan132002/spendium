@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use App\Models\Family;
 use App\Models\FamilyMember;
 use App\Models\User;
-use Illuminate\Support\Facades\Validator;
 
 class FamilyController extends Controller
 {
@@ -27,7 +26,7 @@ class FamilyController extends Controller
             'status' => 'accepted'
         ]);
 
-        return response()->json(['message' => 'Family created', 'family' => $family]);
+        return $this->success('Family created', $family);
     }
 
     public function inviteMember(Request $request)
@@ -40,18 +39,16 @@ class FamilyController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user || $user->role !== $request->role) {
-            return response()->json([
-                'message' => 'User with this email and role does not exist.'
-            ], 404);
+            return $this->error('User with this email and role does not exist.', null, 404);
         }
 
         $family = Family::where('father_id', auth()->id())->first();
-        if (!$family) return response()->json(['error' => 'No family found'], 404);
+        if (!$family) return $this->error('No family found', null, 404);
 
         $alreadyMember = FamilyMember::where('family_id', $family->id)
             ->where('user_id', $user->id)->first();
 
-        if ($alreadyMember) return response()->json(['message' => 'User already invited or added']);
+        if ($alreadyMember) return $this->success('User already invited or added');
 
         FamilyMember::create([
             'family_id' => $family->id,
@@ -60,7 +57,7 @@ class FamilyController extends Controller
             'status' => 'pending'
         ]);
 
-        return response()->json(['message' => 'Member invited successfully. Awaiting acceptance.']);
+        return $this->success('Member invited successfully. Awaiting acceptance.');
     }
 
     public function acceptInvitation(Request $request)
@@ -70,23 +67,26 @@ class FamilyController extends Controller
             ->first();
 
         if (!$member) {
-            return response()->json(['message' => 'No pending invitation found.'], 404);
+            return $this->error('No pending invitation found.', null, 404);
         }
 
         $member->status = 'accepted';
         $member->save();
 
-        return response()->json(['message' => 'Invitation accepted. Welcome to the family.']);
+        return $this->success('Invitation accepted. Welcome to the family.');
     }
 
     public function listMembers()
     {
-        $family = Family::where('father_id', auth()->id())->with(['members' => function ($query) {
-            $query->where('status', 'accepted');
-        }, 'members.user'])->first();
+        $family = Family::where('father_id', auth()->id())->with([
+            'members' => function ($query) {
+                $query->where('status', 'accepted');
+            },
+            'members.user'
+        ])->first();
 
-        if (!$family) return response()->json(['message' => 'No family found'], 404);
+        if (!$family) return $this->error('No family found', null, 404);
 
-        return response()->json($family->members);
+        return $this->success('Family members retrieved', $family->members);
     }
 }

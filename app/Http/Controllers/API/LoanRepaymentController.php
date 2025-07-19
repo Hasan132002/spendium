@@ -1,12 +1,12 @@
 <?php
 
 namespace App\Http\Controllers\API;
+
 use App\Http\Controllers\Controller;
 use App\Models\Loan;
 use App\Models\LoanRepayment;
-use Carbon\Carbon;
-
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class LoanRepaymentController extends Controller
 {
@@ -21,6 +21,7 @@ class LoanRepaymentController extends Controller
         $loan = Loan::findOrFail($request->loan_id);
 
         $loan->remaining_amount -= $request->amount;
+
         if ($loan->remaining_amount <= 0) {
             $loan->remaining_amount = 0;
             $loan->status = 'paid';
@@ -37,16 +38,16 @@ class LoanRepaymentController extends Controller
             'note' => $request->note
         ]);
 
-        return response()->json(['message' => 'Repayment recorded', 'repayment' => $repayment]);
+        return $this->success('Repayment recorded successfully.', $repayment);
     }
 
     public function byLoan($loan_id)
     {
-        // $repayments = LoanRepayment::where('loan_id', $loan_id)->orderBy('date', 'desc')->get();
-         $repayments = LoanRepayment::with('loan.category') 
-                    ->where('loan_id', $loan_id)
-                    ->orderBy('date', 'desc')
-                    ->get();
-        return response()->json($repayments);
+        $repayments = LoanRepayment::with('loan.category')
+            ->where('loan_id', $loan_id)
+            ->orderBy('date', 'desc')
+            ->get();
+
+        return $this->success('Repayment list fetched successfully.', $repayments);
     }
 }
