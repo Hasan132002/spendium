@@ -46,9 +46,9 @@ class GoalController extends Controller
         $user = Auth::user();
         $family = Family::where('father_id', $user->id)->first();
 
-        if (!$family) {
-            return $this->error('Only the father can create family goals.', null, 403);
-        }
+        // if (!$family) {
+        //     return $this->error('Only the father can create family goals.', null, 403);
+        // }
 
         $request->validate([
             'title' => 'required|string',
