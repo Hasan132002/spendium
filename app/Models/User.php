@@ -55,33 +55,33 @@ class User extends Authenticatable implements JWTSubject
     ];
 
     /**
- * Get the identifier that will be stored in the subject claim of the JWT.
- *
- * @return mixed
- */
-public function getJWTIdentifier()
-{
-    return $this->getKey(); // usually the ID
-}
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey(); // usually the ID
+    }
 
-/**
- * Return a key-value array, containing any custom claims to be added to the JWT.
- *
- * @return array
- */
-public function getJWTCustomClaims()
-{
-    return [];
-}
+    /**
+     * Return a key-value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
 
     public function actionLogs()
     {
         return $this->hasMany(ActionLog::class, 'action_by');
     }
     public function familyMember()
-{
-    return $this->hasOne(FamilyMember::class, 'user_id');
-}
+    {
+        return $this->hasOne(FamilyMember::class, 'user_id');
+    }
 
 
     /**
@@ -99,4 +99,33 @@ public function getJWTCustomClaims()
             $this->notify(new DefaultResetPassword($token));
         }
     }
+
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function reactions()
+    {
+        return $this->hasMany(Reaction::class);
+    }
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id');
+    }
+
+    public function followings()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id');
+    }
+public function isFollowing(User $user)
+{
+    return $this->followings->contains($user);
+}
+
 }

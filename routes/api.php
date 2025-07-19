@@ -8,6 +8,10 @@ use App\Http\Controllers\API\FamilyController;
 use App\Http\Controllers\API\ExpenseController;
 use App\Http\Controllers\API\BudgetController;
 use App\Http\Controllers\API\CategoryController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\ReactionController;
+use App\Http\Controllers\FollowController;
 
 use App\Http\Controllers\API\{
     FundRequestController,
@@ -157,5 +161,31 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/transfer-to-goal', [SavingsController::class, 'transferToGoal']);
         Route::get('/end-of-month', [SavingsController::class, 'endOfMonthRollover']);
     });
+
+    Route::get('posts', [PostController::class, 'index']);
+    Route::get('posts/{post}', [PostController::class, 'show']);
+    Route::post('posts', [PostController::class, 'store']);
+    Route::post('posts/{post}', [PostController::class, 'update']);
+    Route::delete('posts/{post}', [PostController::class, 'destroy']);
+
+    Route::get('my-posts', [PostController::class, 'myPosts']);
+
+    // Comment Routes
+    Route::post('posts/{post}/comments', [CommentController::class, 'store']);
+    Route::get('posts/{post}/comments', [CommentController::class, 'index']);
+
+    // Reaction Routes
+    Route::post('posts/{post}/like', [ReactionController::class, 'togglePostReaction']);
+    Route::post('comments/{comment}/like', [ReactionController::class, 'toggleCommentReaction']);
+    Route::post('/users/{user}/follow', [FollowController::class, 'toggleFollow']);
+    Route::post('/users/{user}/unfollow', [FollowController::class, 'unfollow']);
+
+    // List followers and followings
+    Route::get('/users/{user}/followers', [FollowController::class, 'followers']);
+    Route::get('/users/{user}/followings', [FollowController::class, 'followings']);
+    // Route::get('/profile-stats/{id}', [FollowController::class, 'profileStats']);
+    Route::get('users/{user}/profile-stats', [FollowController::class, 'profileStats']);
+
+
 
 });
