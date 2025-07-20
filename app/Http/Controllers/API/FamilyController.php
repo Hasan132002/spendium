@@ -59,6 +59,19 @@ class FamilyController extends Controller
 
         return $this->success('Member invited successfully. Awaiting acceptance.');
     }
+public function showMyInvitations()
+{
+    $pendingInvitations = FamilyMember::with('family')
+        ->where('user_id', auth()->id())
+        ->where('status', 'pending')
+        ->get();
+
+    if ($pendingInvitations->isEmpty()) {
+        return $this->success('No pending invitations found.', []);
+    }
+
+    return $this->success('Pending invitations found.', $pendingInvitations);
+}
 
     public function acceptInvitation(Request $request)
     {

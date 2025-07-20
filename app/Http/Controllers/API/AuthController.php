@@ -175,4 +175,15 @@ class AuthController extends Controller
         JWTAuth::invalidate(JWTAuth::getToken());
         return $this->success('Logged out successfully');
     }
+    public function getNonFatherUsers()
+{
+
+    $users = User::where('role', '!=', 'father')->get();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Users fetched successfully',
+        'data' => $users
+    ]);
+}
 }

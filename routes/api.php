@@ -60,6 +60,7 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
     Route::post('reset-password', [AuthController::class, 'resetPassword']);
+    Route::get('/users/non-fathers', [AuthController::class, 'getNonFatherUsers']);
 
     Route::middleware('auth:api')->group(function () {
         Route::post('change-password', [AuthController::class, 'changePassword']);
@@ -90,6 +91,8 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/create', [FamilyController::class, 'create']);
         Route::post('/invite', [FamilyController::class, 'inviteMember']);
         Route::post('/accept-invitation', [FamilyController::class, 'acceptInvitation']);
+        Route::get('/my-invitations', [FamilyController::class, 'showMyInvitations']);
+
         Route::get('/members', [FamilyController::class, 'listMembers']);
     });
 
