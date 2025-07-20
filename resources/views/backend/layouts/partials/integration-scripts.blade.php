@@ -15,7 +15,7 @@
         gtag("js", new Date());
         gtag("config", "G-WWCRYQMHZ7");
     </script>
-@else if (!empty(config('settings.google_analytics_script')))
+<!-- @else if (!empty(config('settings.google_analytics_script'))) -->
     {!! config('settings.google_analytics_script') !!}
 @endif
 
