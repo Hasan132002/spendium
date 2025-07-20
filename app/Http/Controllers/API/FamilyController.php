@@ -89,19 +89,33 @@ public function showMyInvitations()
         return $this->success('Invitation accepted. Welcome to the family.');
     }
 
-    public function listMembers()
-    {
-        $family = Family::where('father_id', auth()->id())->with([
+  public function listMembers()
+{
+    $userId = auth()->id();
+
+    // Get family where user is father or member
+    $family = Family::where('father_id', $userId)
+        ->orWhereHas('members', function ($query) use ($userId) {
+            $query->where('user_id', $userId)->where('status', 'accepted');
+        })
+        ->with([
             'members' => function ($query) {
                 $query->where('status', 'accepted');
             },
             'members.user'
-        ])->first();
+        ])
+        ->first();
 
-        if (!$family) return $this->error('No family found', null, 404);
-
-        return $this->success('Family members retrieved', $family->members);
+    if (!$family) {
+        return $this->error('No family found for this user', null, 404);
     }
+
+    return $this->success('Family members retrieved successfully', [
+        'family' => $family,
+        'members' => $family->members
+    ]);
+}
+
    public function hasCreatedFamily()
 {
     $user = auth()->user();
