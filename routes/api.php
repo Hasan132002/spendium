@@ -94,6 +94,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/my-invitations', [FamilyController::class, 'showMyInvitations']);
 
         Route::get('/members', [FamilyController::class, 'listMembers']);
+        Route::get('//hasFamily', [FamilyController::class, 'listMembers']);
     });
 
     Route::prefix('categories')->group(function () {

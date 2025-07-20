@@ -102,4 +102,25 @@ public function showMyInvitations()
 
         return $this->success('Family members retrieved', $family->members);
     }
+    public function hasCreatedFamily()
+{
+    $user = auth()->user();
+
+    if ($user->role !== 'father') {
+        return response()->json([
+            'success' => true,
+            'message' => 'User is not a father',
+            'data' => false
+        ]);
+    }
+
+    $hasFamily = Family::where('father_id', $user->id)->exists();
+
+    return response()->json([
+        'success' => true,
+        'message' => $hasFamily ? 'Father has created a family' : 'Father has not created any family',
+        'data' => $hasFamily
+    ]);
+}
+
 }
