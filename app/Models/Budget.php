@@ -30,6 +30,9 @@ public function user()
 {
     return $this->belongsTo(Family::class);
 }
-
+ public function transactions()
+    {
+        return $this->hasMany(BudgetTransaction::class, 'budget_id', 'id');
+    }
 
 }
