@@ -106,7 +106,7 @@ public function showMyInvitations()
         ->first();
 
     if (!$family) {
-        return $this->error('No family found for this user', null, 400);
+        return $this->error('No family found for this user', [], 400);
     }
 
     return $this->success('Family members retrieved successfully', [
