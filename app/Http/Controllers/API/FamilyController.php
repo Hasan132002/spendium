@@ -93,7 +93,6 @@ public function showMyInvitations()
 {
     $userId = auth()->id();
 
-    // Get family where user is father or member
     $family = Family::where('father_id', $userId)
         ->orWhereHas('members', function ($query) use ($userId) {
             $query->where('user_id', $userId)->where('status', 'accepted');

@@ -46,7 +46,7 @@
             <img
                 class="logo-icon w-20 lg:w-12 transition-opacity duration-300"
                 :class="sidebarToggle && !isHovered ? 'lg:block opacity-100' : 'hidden opacity-0'"
-                src="{{ config('settings.site_icon') ?? '/images/logo/icon.png' }}"
+                src="{{ config('settings.site_icon') ?? '/images/logo/Sped_logo.png' }}"
                 alt="{{ config('app.name') }}"
             />
         </a>
