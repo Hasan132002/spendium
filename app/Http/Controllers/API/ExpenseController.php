@@ -26,7 +26,7 @@ class ExpenseController extends Controller
         $budget = Budget::find($request->budget_id);
 
         if (!$budget) {
-            return $this->error('Budget not found', null, 404);
+            return $this->error('Budget not found', null, 400);
         }
 
         if ($budget->user_id !== null && $budget->user_id != auth()->id()) {
@@ -89,7 +89,7 @@ class ExpenseController extends Controller
         $family = Family::where('father_id', auth()->id())->first();
 
         if (!$family) {
-            return $this->error('Family not found', null, 404);
+            return $this->error('Family not found', null, 400);
         }
 
         $member = FamilyMember::where('family_id', $family->id)

@@ -72,7 +72,7 @@ class BudgetController extends Controller
         $family = Family::where('father_id', auth()->id())->first();
 
         if (!$family) {
-            return $this->error('No family found for this user.', null, 404);
+            return $this->error('No family found for this user.', null, 400);
         }
 
         $budgets = Budget::where('family_id', $family->id)->get();

@@ -126,7 +126,7 @@ class FundRequestController extends Controller
         $family = Family::where('father_id', auth()->id())->first();
 
         if (!$family) {
-            return $this->error('Family not found', null, 404);
+            return $this->error('Family not found', null, 400);
         }
 
         $requests = FundRequest::where('family_id', $family->id)

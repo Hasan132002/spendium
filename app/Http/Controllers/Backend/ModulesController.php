@@ -87,7 +87,7 @@ class ModulesController extends Controller
         $moduleStatuses = $this->getModuleStatuses();
 
         if (!isset($moduleStatuses[$moduleName]) && !File::exists($this->modulesPath . '/' . $moduleName)) {
-            return response()->json(['success' => false, 'message' => 'Module not found.'], 404);
+            return response()->json(['success' => false, 'message' => 'Module not found.'], 400);
         }
 
         try {

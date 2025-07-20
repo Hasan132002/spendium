@@ -39,11 +39,11 @@ class FamilyController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user || $user->role !== $request->role) {
-            return $this->error('User with this email and role does not exist.', null, 404);
+            return $this->error('User with this email and role does not exist.', null, 400);
         }
 
         $family = Family::where('father_id', auth()->id())->first();
-        if (!$family) return $this->error('No family found', null, 404);
+        if (!$family) return $this->error('No family found', null, 400);
 
         $alreadyMember = FamilyMember::where('family_id', $family->id)
             ->where('user_id', $user->id)->first();
@@ -80,7 +80,7 @@ public function showMyInvitations()
             ->first();
 
         if (!$member) {
-            return $this->error('No pending invitation found.', null, 404);
+            return $this->error('No pending invitation found.', null, 400);
         }
 
         $member->status = 'accepted';
@@ -106,7 +106,7 @@ public function showMyInvitations()
         ->first();
 
     if (!$family) {
-        return $this->error('No family found for this user', null, 404);
+        return $this->error('No family found for this user', null, 400);
     }
 
     return $this->success('Family members retrieved successfully', [

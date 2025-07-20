@@ -79,7 +79,7 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            return $this->error('Email not found', null, 404);
+            return $this->error('Email not found', null, 400);
         }
 
         $otp = rand(100000, 999999);
