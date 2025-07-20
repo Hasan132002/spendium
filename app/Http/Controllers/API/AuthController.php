@@ -180,10 +180,7 @@ class AuthController extends Controller
 
     $users = User::where('role', '!=', 'father')->get();
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Users fetched successfully',
-        'data' => $users
-    ]);
+       return $this->success('Users fetched successfully', $users);
+
 }
 }
