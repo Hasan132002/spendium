@@ -14,21 +14,7 @@ use App\Http\Controllers\Backend\UserLoginAsController;
 use App\Http\Controllers\Backend\LocaleController;
 use App\Http\Controllers\Backend\SaleOrderController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\BudgetController;
-use App\Http\Controllers\API\ExpenseController;
-use App\Http\Controllers\API\FamilyController;
-use App\Http\Controllers\API\CategoryController;
-use App\Http\Controllers\API\FundRequestController;
-use App\Http\Controllers\API\LoanCategoryController;
-use App\Http\Controllers\API\LoanController;
-use App\Http\Controllers\API\LoanRepaymentController;
-use App\Http\Controllers\API\LoanContributionController;
-use App\Http\Controllers\API\GoalController;
-use App\Http\Controllers\API\SavingsController;
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\CommentController;
-use App\Http\Controllers\FollowController;
-use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\Backend\AllAppController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -87,59 +73,60 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::post('users/switch-back', [UserLoginAsController::class, 'switchBack'])->name('users.switch-back');
 
 
-    Route::get('/auth/profile', [AuthController::class, 'profile']);
+    Route::get('/auth/profile', [AllAppController::class, 'profile']);
 
     // ✅ Budget
-    Route::get('/budget/family', [BudgetController::class, 'familyBudget']);
-    Route::get('/budget/assigned', [BudgetController::class, 'assignedBudgets']);
+    // Route::get('/budget/family', [AllAppController::class, 'familyBudget']);
+
+Route::get('/budget/family', [AllAppController::class, 'familyBudget'])->name('budget.family');
+    Route::get('/budget/assigned', [AllAppController::class, 'assignedBudgets']);
 
     // ✅ Expenses
-    Route::get('/expenses/my', [ExpenseController::class, 'myExpenses']);
-    Route::get('/expenses/family', [ExpenseController::class, 'familyExpenses']);
+    Route::get('/expenses/my', [AllAppController::class, 'myExpenses']);
+    Route::get('/expenses/family', [AllAppController::class, 'familyExpenses']);
 
     // ✅ Family
-    Route::get('/family/members', [FamilyController::class, 'listMembers']);
+    Route::get('/family/members', [AllAppController::class, 'Members']);
 
     // ✅ Categories
-    Route::get('/categories/all', [CategoryController::class, 'index']);
+    Route::get('/categories/all', [AllAppController::class, 'categories']);
 
     // ✅ Fund Requests
-    Route::get('/fund-request/my', [FundRequestController::class, 'myRequests']);
-    Route::get('/fund-request/funds/all', [FundRequestController::class, 'allFamilyRequests']);
+    Route::get('/fund-request/my', [AllAppController::class, 'myRequests']);
+    Route::get('/fund-request/funds/all', [AllAppController::class, 'FamilyRequests']);
 
     // ✅ Loan Categories
-    Route::get('/loan-categories', [LoanCategoryController::class, 'index']);
+    Route::get('/loan-categories', [AllAppController::class, 'loanCategories']);
 
     // ✅ Loans
-    Route::get('/loans', [LoanController::class, 'index']);
-    Route::get('/loans/{id}', [LoanController::class, 'show']);
+    Route::get('/loans', [AllAppController::class, 'loans']);
+    Route::get('/loans/{id}', [AllAppController::class, 'Loan']);
 
     // ✅ Loan Repayments
-    Route::get('/loan-repayments/loan/{loan_id}', [LoanRepaymentController::class, 'byLoan']);
+    Route::get('/loan-repayments/loan/{loan_id}', [AllAppController::class, 'loanRepayments']);
 
     // ✅ Loan Contributions
-    Route::get('/loan-contributions/my', [LoanContributionController::class, 'myContributions']);
+    Route::get('/loan-contributions/my', [AllAppController::class, 'myContributions']);
 
     // ✅ Goals (Family & Personal)
-    Route::get('/goals/family', [GoalController::class, 'familyGoals']);
-    Route::get('/goals/personal', [GoalController::class, 'myGoals']);
-    Route::get('/goals/{id}/progress', [GoalController::class, 'goalProgress']);
+    Route::get('/goals/family', [AllAppController::class, 'familyGoals']);
+    Route::get('/goals/personal', [AllAppController::class, 'myGoals']);
+    Route::get('/goals/{id}/progress', [AllAppController::class, 'goalProgress']);
 
     // ✅ Savings
-    Route::get('/savings/my', [SavingsController::class, 'mySavings']);
-    Route::get('/savings/history', [SavingsController::class, 'savingsHistory']);
-    Route::get('/savings/end-of-month', [SavingsController::class, 'endOfMonthRollover']);
+    Route::get('/savings/my', [AllAppController::class, 'Savings']);
+    Route::get('/savings/history', [AllAppController::class, 'savingsHistory']);
+    Route::get('/savings/end-of-month', [AllAppController::class, 'endOfMonthRolloverView']); 
 
     // ✅ Posts & Comments
-    Route::get('/posts', [PostController::class, 'index']);
-    Route::get('/posts/{post}', [PostController::class, 'show']);
-    Route::get('/my-posts', [PostController::class, 'myPosts']);
-    Route::get('/posts/{post}/comments', [CommentController::class, 'index']);
+   Route::get('/posts', [AllAppController::class, 'Posts']);
+Route::get('/posts/{post}', [AllAppController::class, 'post']);
+Route::get('/my-posts', [AllAppController::class, 'myPosts']);
+Route::get('/posts/{post}/comments', [AllAppController::class, 'comments']);
 
-    // ✅ Follows
-    Route::get('/users/{user}/followers', [FollowController::class, 'followers']);
-    Route::get('/users/{user}/followings', [FollowController::class, 'followings']);
-    Route::get('/users/{user}/profile-stats', [FollowController::class, 'profileStats']);
+Route::get('/users/{user}/followers', [AllAppController::class, 'followers']);
+Route::get('/users/{user}/followings', [AllAppController::class, 'followings']);
+Route::get('/users/{user}/profile-stats', [AllAppController::class, 'profileStats']);
 
 
 });
