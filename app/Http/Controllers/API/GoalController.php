@@ -105,10 +105,12 @@ class GoalController extends Controller
             'title' => 'required|string',
             'amount' => 'required|numeric|min:1'
         ]);
+            $familyId = Auth::user()->familyMember?->family_id ?? 1;
+
 
         $goal = Goal::create([
-            'family_id'     => Auth::user()->familyMember?->family_id,
-            'user_id'       => Auth::id(),
+     'family_id'     => $familyId,
+                 'user_id'       => Auth::id(),
             'title'         => $request->title,
             'target_amount' => $request->amount,
             'type'          => 'personal',
