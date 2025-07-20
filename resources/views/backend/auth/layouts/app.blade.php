@@ -72,10 +72,10 @@ $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(valu
 
                             <div class="flex flex-col items-center max-w-xs">
                                 <a href="#" class="block mb-4">
-                                    <img src="/images/logo/azure-tech.png" alt="Logo">
+                                    <img src="/images/logo/spendium-removebg-preview.png" alt="Logo">
                                 </a>
                                 <p class="text-center text-gray-400 dark:text-white/60">
-                                    {{ __('This product is built for Azuretech with Proper Right') }}
+                                    {{ __('This product is built by Team Spendium with Proper Right') }}
                                 </p>
                             </div>
                         </div>

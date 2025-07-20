@@ -34,12 +34,12 @@
             <span class="logo transition-opacity duration-300" :class="sidebarToggle && !isHovered ? 'hidden opacity-0' : 'opacity-100'">
                 <img
                     class="dark:hidden max-h-[80px]"
-                    src="{{ config('settings.site_logo_lite') ?? asset('images/logo/azure-tech.png') }}"
+                    src="{{ config('settings.site_logo_lite') ?? asset('images/logo/spendium-removebg-preview.png') }}"
                     alt="{{ config('app.name') }}"
                 />
                 <img
                     class="hidden dark:block max-h-[80px]"
-                    src="{{ config('settings.site_logo_dark') ?? '/images/logo/azure-tech.png' }}"
+                    src="{{ config('settings.site_logo_dark') ?? '/images/logo/spendium-removebg-preview.png' }}"
                     alt="{{ config('app.name') }}"
                 />
             </span>

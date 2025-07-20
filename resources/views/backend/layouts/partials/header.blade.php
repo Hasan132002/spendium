@@ -39,8 +39,8 @@ x-init="init()"
             </button>
 
             <a href="{{ route('admin.dashboard') }}" class="lg:hidden">
-                <img class="dark:hidden w-32" src="/images/logo/azure-tech.png" alt="Logo" />
-                <img class="hidden dark:block w-32" src="/images/logo/azure-tech.png" alt="Logo" />
+                <img class="dark:hidden w-32" src="/images/logo/spendium-removebg-preview.png" alt="Logo" />
+                <img class="hidden dark:block w-32" src="/images/logo/spendium-removebg-preview.png" alt="Logo" />
             </a>
         </div>
 
