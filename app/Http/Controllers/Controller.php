@@ -14,7 +14,7 @@ use Illuminate\Routing\Controller as BaseController;
 class Controller extends BaseController
 {
     use AuthorizationChecker, AuthorizesRequests, DispatchesJobs, HasActionLogTrait, ValidatesRequests;
-    protected function success($message, $data = null, $code = 200)
+    protected function success($message, $data = [], $code = 200)
     {
         return response()->json([
             'Code' => $code,

@@ -309,9 +309,13 @@ public function MyGoals()
     ]);
 }
 
-  public function Savings()
+public function Savings()
 {
-    $saving = Saving::firstOrCreate(['user_id' => Auth::id()], ['amount' => 0]);
+    $saving = Saving::with('transactions')->firstOrCreate(
+        ['user_id' => Auth::id()],
+        ['amount' => 0]
+    );
+
     return view('dashboard.savings', compact('saving'));
 }
 
@@ -421,42 +425,25 @@ public function Post(Post $post)
     ));
 }
 
-     public function endOfMonthRolloverView()
-    {
-        $month = Carbon::now()->format('Y-m');
+   public function endOfMonthRolloverView(Request $request)
+{
+    $month = $request->input('month', Carbon::now()->format('Y-m'));
 
-        $budgets = Budget::where('month', $month)->get();
-        $totalRemaining = 0;
+    $budgets = Budget::with('category', 'transactions')->where('month', $month)->get();
+    $totalRemaining = 0;
 
-        foreach ($budgets as $budget) {
-            $used = BudgetTransaction::where('budget_id', $budget->id)->sum('amount');
-            $remaining = $budget->amount - $used;
-            if ($remaining > 0) {
-                $totalRemaining += $remaining;
-            }
+    foreach ($budgets as $budget) {
+        $used = $budget->transactions->sum('amount');
+        $remaining = $budget->amount - $used;
+        if ($remaining > 0) {
+            $totalRemaining += $remaining;
         }
-
-        if ($totalRemaining > 0) {
-            $saving = Saving::first();
-            if ($saving) {
-                $saving->amount += $totalRemaining;
-                $saving->save();
-            } else {
-                $saving = Saving::create(['amount' => $totalRemaining]);
-            }
-
-            SavingsTransaction::create([
-                'user_id' => auth()->id() ?? 1,
-                'action' => 'add',
-                'amount' => $totalRemaining,
-                'source' => 'rollover',
-            ]);
-        }
-
-        return view('dashboard.rollover_summary', [
-            'total_remaining' => $totalRemaining,
-            'month' => $month,
-            'budgets' => $budgets,
-        ]);
     }
+
+return view('dashboard.rollover_summary', [
+    'total_remaining' => $totalRemaining,
+    'month' => $month,
+    'budgets' => $budgets,
+]);
+}
 }

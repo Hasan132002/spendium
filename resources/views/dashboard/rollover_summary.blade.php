@@ -22,6 +22,17 @@
             </ol>
         </nav>
     </div>
+<form method="GET" action="/rollover-summary" class="mb-4 flex items-center gap-4">
+    <label for="month" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+        {{ __('Select Month') }}
+    </label>
+    
+    <input type="month" id="month" name="month" value="{{ $month }}" class="border rounded p-2 dark:bg-gray-900 dark:text-white">
+
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        {{ __('Filter') }}
+    </button>
+</form>
 
     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
         <div class="text-lg font-medium text-gray-800 dark:text-white mb-4">

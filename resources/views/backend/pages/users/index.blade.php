@@ -104,6 +104,7 @@
                                     </div>
                                     @endif
                                 </td>
+                                
                                 <td class="px-5 py-4 sm:px-6">{{ $user->email }}</td>
                                 <td class="px-5 py-4 sm:px-6">
                                     @foreach ($user->roles as $role)
