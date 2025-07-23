@@ -8,6 +8,7 @@ use App\Models\{Goal, GoalContribution, Saving, SavingsTransaction, Budget, Budg
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class GoalController extends Controller
 {
@@ -51,9 +52,17 @@ class GoalController extends Controller
         }
 
         $request->validate([
-            'title' => 'required|string',
-            'amount' => 'required|numeric|min:1'
+            'title' => [
+                'required',
+                'string',
+                Rule::unique('goals')->where(function ($query) use ($family) {
+                    return $query->where('family_id', $family->id)
+                                ->where('type', 'family');
+                }),
+            ],
+            'amount' => 'required|numeric|min:1',
         ]);
+
 
         $goal = Goal::create([
             'family_id'     => $family->id,
@@ -101,11 +110,19 @@ class GoalController extends Controller
 
     public function createMyGoal(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string',
-            'amount' => 'required|numeric|min:1'
-        ]);
-            $familyId = Auth::user()->familyMember?->family_id ?? 1;
+       $request->validate([
+        'title' => [
+            'required',
+            'string',
+            Rule::unique('goals')->where(function ($query) {
+                return $query->where('user_id', Auth::id())
+                            ->where('type', 'personal');
+            }),
+        ],
+        'amount' => 'required|numeric|min:1',
+    ]);
+
+    $familyId = Auth::user()->familyMember?->family_id ?? 1;
 
 
         $goal = Goal::create([

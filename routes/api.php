@@ -12,6 +12,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\FollowController;
+use App\Http\Controllers\AIController;
 
 use App\Http\Controllers\API\{
     FundRequestController,
@@ -51,6 +52,7 @@ Route::get('/translations/{lang}', function (string $lang) {
 
 Route::post('/whatsapp/callback', [WhatsappCallbackController::class, 'handle']);
 
+Route::post('/store-embedding', [AIController::class, 'storeEmbedding']);
 
 
 // Auth Routes for Android App
@@ -68,7 +70,6 @@ Route::group(['prefix' => 'auth'], function () {
         Route::get('profile', [AuthController::class, 'profile']);
     });
 });
-
 
 Route::middleware('auth:api')->group(function () {
 
@@ -191,5 +192,5 @@ Route::middleware('auth:api')->group(function () {
     Route::get('users/{user}/profile-stats', [FollowController::class, 'profileStats']);
 
 
-
+    
 });

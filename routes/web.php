@@ -15,6 +15,7 @@ use App\Http\Controllers\Backend\LocaleController;
 use App\Http\Controllers\Backend\SaleOrderController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Backend\AllAppController;
+use App\Http\Controllers\AIController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -129,12 +130,16 @@ Route::get('/users/{user}/followings', [AllAppController::class, 'followings']);
 Route::get('/users/{user}/profile-stats', [AllAppController::class, 'profileStats']);
 
 
+//  Route::get('/ai-assistant', [App\Http\Controllers\AIController::class, 'index'])->name('ai.index');
+//     Route::post('/ai-assistant/ask', [App\Http\Controllers\AIController::class, 'ask'])->name('ai.ask');
+ Route::get('/ai/chat', [AIController::class, 'chatView'])->name('ai.chat');
+    Route::post('/ai/ask', [AIController::class, 'askAI'])->name('ai.ask');
 });
 
 
 
 /**
- * Profile routes.
+ * Profile routes.cd
  */
 Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth']], function () {
     Route::get('/edit', [ProfilesController::class, 'edit'])->name('edit');
