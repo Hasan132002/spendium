@@ -10,18 +10,21 @@
         <h2 class="text-xl font-semibold text-gray-800 dark:text-white">
             {{ __('Family Budgets') }}
         </h2>
-        <nav>
-            <ol class="flex items-center gap-1.5">
-                <li>
-                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{{ route('admin.dashboard') }}">
-                        {{ __('Home') }}
-                        <i class="bi bi-chevron-right"></i>
-                    </a>
-                </li>
-                <li class="text-sm text-gray-800 dark:text-white">{{ __('Family Budgets') }}</li>
-            </ol>
-        </nav>
+        <div class="flex items-center gap-3">
+            @can('family.budget.create')
+                <a href="{{ route('admin.budget.create-family') }}" class="btn-primary text-sm">
+                    <i class="bi bi-plus-lg mr-1"></i> {{ __('New Family Budget') }}
+                </a>
+            @endcan
+            @can('family.budget.assign')
+                <a href="{{ route('admin.budget.create-assigned') }}" class="btn-default text-sm">
+                    <i class="bi bi-person-check mr-1"></i> {{ __('Assign to Member') }}
+                </a>
+            @endcan
+        </div>
     </div>
+
+    @include('backend.layouts.partials.messages')
 
     <div class="space-y-6">
         <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">

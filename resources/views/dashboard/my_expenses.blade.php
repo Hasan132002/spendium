@@ -11,18 +11,14 @@
         <h2 class="text-xl font-semibold text-gray-800 dark:text-white/90">
             {{ __('My Expenses') }}
         </h2>
-        <nav>
-            <ol class="flex items-center gap-1.5">
-                <li>
-                    <a class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" href="{{ route('admin.dashboard') }}">
-                        {{ __('Home') }}
-                        <i class="bi bi-chevron-right"></i>
-                    </a>
-                </li>
-                <li class="text-sm text-gray-800 dark:text-white/90">{{ __('My Expenses') }}</li>
-            </ol>
-        </nav>
+        @can('personal.expense.manage')
+            <a href="{{ route('admin.expenses.create') }}" class="btn-primary text-sm">
+                <i class="bi bi-plus-lg mr-1"></i> {{ __('Log New Expense') }}
+            </a>
+        @endcan
     </div>
+
+    @include('backend.layouts.partials.messages')
 
     <div class="space-y-6">
         <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">

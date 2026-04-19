@@ -16,6 +16,10 @@ use App\Http\Controllers\Backend\FamilyMemberController;
 use App\Http\Controllers\Backend\NotificationController;
 use App\Http\Controllers\Backend\IncomeController;
 use App\Http\Controllers\Backend\ReportController;
+use App\Http\Controllers\Backend\AdminBudgetController;
+use App\Http\Controllers\Backend\AdminExpenseController;
+use App\Http\Controllers\Backend\AdminFundRequestController;
+use App\Http\Controllers\Backend\AdminCategoryController;
 use App\Http\Controllers\Auth\FamilyInviteController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Backend\AllAppController;
@@ -74,6 +78,31 @@ Route::get('/budget/family', [AllAppController::class, 'familyBudget'])->name('b
     // ✅ Expenses
     Route::get('/expenses/my', [AllAppController::class, 'myExpenses']);
     Route::get('/expenses/family', [AllAppController::class, 'familyExpenses']);
+
+    // ✅ Budget Actions (create family / assigned)
+    Route::get('/budget/family/create', [AdminBudgetController::class, 'createFamily'])->name('budget.create-family');
+    Route::post('/budget/family/store', [AdminBudgetController::class, 'storeFamily'])->name('budget.store-family');
+    Route::get('/budget/assigned/create', [AdminBudgetController::class, 'createAssigned'])->name('budget.create-assigned');
+    Route::post('/budget/assigned/store', [AdminBudgetController::class, 'storeAssigned'])->name('budget.store-assigned');
+    Route::delete('/budget/{id}', [AdminBudgetController::class, 'destroy'])->name('budget.destroy');
+
+    // ✅ Expense Actions
+    Route::get('/expenses/create', [AdminExpenseController::class, 'create'])->name('expenses.create');
+    Route::post('/expenses', [AdminExpenseController::class, 'store'])->name('expenses.store');
+    Route::post('/expenses/{id}/approve', [AdminExpenseController::class, 'approve'])->name('expenses.approve');
+    Route::delete('/expenses/{id}', [AdminExpenseController::class, 'destroy'])->name('expenses.destroy');
+
+    // ✅ Fund Request Actions
+    Route::get('/fund-requests/create', [AdminFundRequestController::class, 'create'])->name('fund-requests.create');
+    Route::post('/fund-requests', [AdminFundRequestController::class, 'store'])->name('fund-requests.store');
+    Route::post('/fund-requests/{id}/approve', [AdminFundRequestController::class, 'approve'])->name('fund-requests.approve');
+    Route::post('/fund-requests/{id}/decline', [AdminFundRequestController::class, 'decline'])->name('fund-requests.decline');
+    Route::delete('/fund-requests/{id}', [AdminFundRequestController::class, 'destroy'])->name('fund-requests.destroy');
+
+    // ✅ Category Actions
+    Route::post('/categories', [AdminCategoryController::class, 'store'])->name('categories.store');
+    Route::put('/categories/{id}', [AdminCategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{id}', [AdminCategoryController::class, 'destroy'])->name('categories.destroy');
 
     // ✅ Reports / Analytics
     Route::group(['prefix' => 'reports', 'as' => 'reports.'], function () {
