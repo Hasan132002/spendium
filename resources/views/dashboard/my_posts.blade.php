@@ -4,8 +4,19 @@
 
 @section('admin-content')
 <div class="p-4 mx-auto max-w-screen-2xl md:p-6">
-    <h2 class="text-xl font-semibold">My Posts</h2>
-    <a href="{{ url('admin/posts') }}" class="btn-default mt-2 inline-block">Back to Posts</a>
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-white/90">{{ __('My Posts') }}</h2>
+        <div class="flex gap-2">
+            <a href="{{ url('admin/posts') }}" class="btn-default text-sm">{{ __('All Posts') }}</a>
+            @can('personal.post.manage')
+                <a href="{{ route('admin.posts.create') }}" class="btn-primary text-sm">
+                    <i class="bi bi-plus-lg mr-1"></i> {{ __('New Post') }}
+                </a>
+            @endcan
+        </div>
+    </div>
+
+    @include('backend.layouts.partials.messages')
 
     <div class="space-y-6 mt-6">
         <div class="rounded-2xl border bg-white dark:border-gray-800 dark:bg-gray-900">

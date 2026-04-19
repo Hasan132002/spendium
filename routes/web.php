@@ -20,6 +20,11 @@ use App\Http\Controllers\Backend\AdminBudgetController;
 use App\Http\Controllers\Backend\AdminExpenseController;
 use App\Http\Controllers\Backend\AdminFundRequestController;
 use App\Http\Controllers\Backend\AdminCategoryController;
+use App\Http\Controllers\Backend\AdminLoanController;
+use App\Http\Controllers\Backend\AdminGoalController;
+use App\Http\Controllers\Backend\AdminSavingsController;
+use App\Http\Controllers\Backend\AdminPostController;
+use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\Auth\FamilyInviteController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Backend\AllAppController;
@@ -103,6 +108,38 @@ Route::get('/budget/family', [AllAppController::class, 'familyBudget'])->name('b
     Route::post('/categories', [AdminCategoryController::class, 'store'])->name('categories.store');
     Route::put('/categories/{id}', [AdminCategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categories/{id}', [AdminCategoryController::class, 'destroy'])->name('categories.destroy');
+
+    // ✅ Loan Actions
+    Route::get('/loans-create', [AdminLoanController::class, 'createLoan'])->name('loans.create');
+    Route::post('/loans-store', [AdminLoanController::class, 'storeLoan'])->name('loans.store');
+    Route::delete('/loans/{id}', [AdminLoanController::class, 'destroyLoan'])->name('loans.destroy');
+    Route::post('/loans/{id}/repayment', [AdminLoanController::class, 'addRepayment'])->name('loans.repayment');
+    Route::post('/loans/{id}/contribute', [AdminLoanController::class, 'contribute'])->name('loans.contribute');
+    Route::post('/loan-contributions/{id}/approve', [AdminLoanController::class, 'approveContribution'])->name('loan-contributions.approve');
+    Route::post('/loan-contributions/{id}/decline', [AdminLoanController::class, 'declineContribution'])->name('loan-contributions.decline');
+    Route::post('/loan-categories-store', [AdminLoanController::class, 'storeLoanCategory'])->name('loan-categories.store');
+
+    // ✅ Goal Actions
+    Route::get('/goals/family/create', [AdminGoalController::class, 'createFamily'])->name('goals.create-family');
+    Route::post('/goals/family/store', [AdminGoalController::class, 'storeFamilyGoal'])->name('goals.store-family');
+    Route::get('/goals/personal/create', [AdminGoalController::class, 'createPersonal'])->name('goals.create-personal');
+    Route::post('/goals/personal/store', [AdminGoalController::class, 'storePersonalGoal'])->name('goals.store-personal');
+    Route::post('/goals/{id}/contribute', [AdminGoalController::class, 'contribute'])->name('goals.contribute');
+    Route::delete('/goals/{id}', [AdminGoalController::class, 'destroy'])->name('goals.destroy');
+
+    // ✅ Savings Actions
+    Route::post('/savings/add', [AdminSavingsController::class, 'addToSavings'])->name('savings.add');
+    Route::post('/savings/rollover', [AdminSavingsController::class, 'runEomRollover'])->name('savings.rollover');
+
+    // ✅ Post / Social Actions
+    Route::get('/posts-create', [AdminPostController::class, 'create'])->name('posts.create');
+    Route::post('/posts-store', [AdminPostController::class, 'store'])->name('posts.store');
+    Route::get('/posts/{id}/edit', [AdminPostController::class, 'edit'])->name('posts.edit');
+    Route::put('/posts/{id}', [AdminPostController::class, 'update'])->name('posts.update');
+    Route::delete('/posts/{id}', [AdminPostController::class, 'destroy'])->name('posts.destroy');
+    Route::post('/posts/{id}/comment', [AdminPostController::class, 'comment'])->name('posts.comment');
+    Route::post('/posts/{id}/react', [AdminPostController::class, 'react'])->name('posts.react');
+    Route::post('/users/{id}/toggle-follow', [AdminPostController::class, 'toggleFollow'])->name('users.toggle-follow');
 
     // ✅ Reports / Analytics
     Route::group(['prefix' => 'reports', 'as' => 'reports.'], function () {
@@ -200,6 +237,12 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth'
 });
 
 Route::get('/locale/{lang}', [LocaleController::class, 'switch'])->name('locale.switch');
+
+/**
+ * Public Community Forum (no auth required).
+ */
+Route::get('/community', [CommunityController::class, 'index'])->name('community.index');
+Route::get('/community/{id}', [CommunityController::class, 'show'])->name('community.show');
 
 /**
  * Public family invitation acceptance routes (no auth).

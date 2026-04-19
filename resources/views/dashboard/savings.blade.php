@@ -10,6 +10,7 @@
         <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-xl font-semibold text-gray-800 dark:text-white/90">
                 {{ __('My Savings') }}
+                <span class="ml-3 text-2xl font-bold text-blue-600">{{ config('app.currency_symbol', '$') }}{{ number_format((float) $saving->total, 2) }}</span>
             </h2>
             <nav>
                 <ol class="flex items-center gap-1.5">
@@ -25,6 +26,31 @@
             </nav>
         </div>
     </div>
+
+    @include('backend.layouts.partials.messages')
+
+    @can('personal.savings.manage')
+    {{-- Add to Savings --}}
+    <div class="mb-6 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">{{ __('Add to Savings') }}</h3>
+        </div>
+        <form action="{{ route('admin.savings.add') }}" method="POST" class="p-5 flex flex-wrap gap-3 items-end">
+            @csrf
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">{{ __('Amount') }}</label>
+                <input type="number" step="0.01" name="amount" required placeholder="e.g. 1000"
+                       class="h-10 w-40 rounded-lg border border-gray-300 px-3 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+            </div>
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">{{ __('Note (optional)') }}</label>
+                <input type="text" name="note" placeholder="e.g. Monthly deposit"
+                       class="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+            </div>
+            <button type="submit" class="btn-primary text-sm"><i class="bi bi-plus-lg mr-1"></i>{{ __('Add') }}</button>
+        </form>
+    </div>
+    @endcan
 
 <div class="mt-8 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
     <div class="px-5 py-4 sm:px-6 sm:py-5">

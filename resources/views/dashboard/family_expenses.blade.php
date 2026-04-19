@@ -37,28 +37,48 @@
 
                 <table id="dataTable" class="w-full dark:text-gray-400">
                     <thead class="bg-light text-capitalize">
-                        <tr class="border-b border-gray-100 dark:border-gray-800">
-                            <th class="px-5 py-3 text-left">{{ __('Sl') }}</th>
-                            <th class="px-5 py-3 text-left">{{ __('Member Name') }}</th>
+                        <tr class="border-b border-gray-100 dark:border-gray-800 text-xs uppercase text-gray-500 dark:text-gray-400">
+                            <th class="px-5 py-3 text-left">{{ __('Member') }}</th>
+                            <th class="px-5 py-3 text-left">{{ __('Title') }}</th>
                             <th class="px-5 py-3 text-left">{{ __('Category') }}</th>
-                            <th class="px-5 py-3 text-left">{{ __('Budget Title') }}</th>
                             <th class="px-5 py-3 text-left">{{ __('Amount') }}</th>
                             <th class="px-5 py-3 text-left">{{ __('Date') }}</th>
+                            <th class="px-5 py-3 text-left">{{ __('Status') }}</th>
+                            <th class="px-5 py-3 text-right">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($expenses as $index => $expense)
-                            <tr class="border-b border-gray-100 dark:border-gray-800">
-                                <td class="px-5 py-4">{{ $index + 1 }}</td>
+                        @forelse ($expenses as $expense)
+                            <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                                 <td class="px-5 py-4">{{ $expense->user->name ?? '-' }}</td>
+                                <td class="px-5 py-4 font-medium">{{ $expense->title }}</td>
                                 <td class="px-5 py-4">{{ $expense->category->name ?? '-' }}</td>
-                                <td class="px-5 py-4">{{ $expense->budget->title ?? '-' }}</td>
-                                <td class="px-5 py-4">{{ number_format($expense->amount, 2) }}</td>
-                                <td class="px-5 py-4">{{ $expense->created_at->format('d M Y') }}</td>
+                                <td class="px-5 py-4 font-semibold">{{ config('app.currency_symbol', '$') }}{{ number_format((float) $expense->amount, 2) }}</td>
+                                <td class="px-5 py-4 text-sm">{{ $expense->date?->format('d M Y') }}</td>
+                                <td class="px-5 py-4">
+                                    @if ($expense->approved)
+                                        <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">{{ __('Approved') }}</span>
+                                    @else
+                                        <span class="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300">{{ __('Pending') }}</span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-4 text-right">
+                                    @if (!$expense->approved)
+                                        @can('family.expense.approve')
+                                            <form action="{{ route('admin.expenses.approve', $expense->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" class="text-green-600 hover:underline text-sm"><i class="bi bi-check-circle"></i> {{ __('Approve') }}</button>
+                                            </form>
+                                        @endcan
+                                    @endif
+                                    @if ($expense->receipt_path)
+                                        <a href="{{ $expense->receipt_url }}" target="_blank" class="text-blue-600 hover:underline text-sm ml-2"><i class="bi bi-receipt"></i> {{ __('Receipt') }}</a>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center px-5 py-4">
+                                <td colspan="7" class="text-center px-5 py-4">
                                     <p class="text-gray-500 dark:text-gray-400">{{ __('No expenses found') }}</p>
                                 </td>
                             </tr>
