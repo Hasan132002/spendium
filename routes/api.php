@@ -2,7 +2,6 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\WhatsappCallbackController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\FamilyController;
 use App\Http\Controllers\API\ExpenseController;
@@ -49,8 +48,6 @@ Route::get('/translations/{lang}', function (string $lang) {
     $translations = json_decode(file_get_contents($path), true);
     return response()->json($translations);
 });
-
-Route::post('/whatsapp/callback', [WhatsappCallbackController::class, 'handle']);
 
 Route::post('/store-embedding', [AIController::class, 'storeEmbedding']);
 

@@ -196,6 +196,23 @@ class RolesService
 
         $roles['subscriber'] = $this->createRole('Subscriber', $subscriberPermissions);
 
+        // 5. Family Head role - for self-registered fathers/mothers (family heads)
+        $familyPermissions = $this->permissionService->getPermissionsByGroup('family') ?? [];
+        $personalPermissions = $this->permissionService->getPermissionsByGroup('personal') ?? [];
+        $familyHeadPermissions = array_merge(
+            ['dashboard.view', 'profile.view', 'profile.edit', 'profile.update'],
+            $familyPermissions,
+            $personalPermissions
+        );
+        $roles['family_head'] = $this->createRole('Family Head', $familyHeadPermissions);
+
+        // 6. Family Member role - for invited mother/child (personal only by default)
+        $familyMemberPermissions = array_merge(
+            ['dashboard.view', 'profile.view', 'profile.edit', 'profile.update'],
+            $personalPermissions
+        );
+        $roles['family_member'] = $this->createRole('Family Member', $familyMemberPermissions);
+
         return $roles;
     }
 

@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasFamilyScope;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\{Family, Budget, Expense, Category, FundRequest, FamilyMember,Loan, LoanCategory, LoanRepayment, LoanContribution, Goal, Saving, SavingsTransaction, Post, User, BudgetTransaction};
@@ -13,17 +14,23 @@ use Carbon\Carbon;
 
 class AllAppController extends Controller
 {
+    use HasFamilyScope;
+
 
     public function familyBudget(Request $request)
     {
-        $user = auth()->user();
-        $family = Family::where('father_id', $user->id)->first();
-        if (!$family) {
+        $familyIds = $this->familyIdsInScope();
+
+        if (empty($familyIds)) {
             return redirect()->back()->with('error', 'No family found for this user.');
         }
 
         $query = Budget::with(['user', 'category', 'family'])
-            ->where('family_id', $family->id);
+            ->whereIn('family_id', $familyIds);
+
+        if ($request->filled('family_id')) {
+            $query->where('family_id', $request->family_id);
+        }
 
         if ($request->filled('family')) {
             $query->whereHas('user', function ($q) use ($request) {
@@ -32,13 +39,17 @@ class AllAppController extends Controller
         }
 
         $budgets = $query->get();
+        $families = $this->familiesInScope();
 
-        return view('dashboard.family_budgets', compact('budgets', 'family'));
+        // For backwards compatibility with existing view
+        $family = $families->first();
+
+        return view('dashboard.family_budgets', compact('budgets', 'family', 'families'));
     }
 
 
 
-public function assignedBudgets()
+public function assignedBudgets(Request $request)
 {
     $user = auth()->user();
 
@@ -46,23 +57,27 @@ public function assignedBudgets()
         return redirect()->route('login')->with('error', 'Please login to access this page.');
     }
 
-    $family = Family::where('father_id', $user->id)->first();
+    if ($this->isSuperadmin() || Family::where('father_id', $user->id)->exists()) {
+        $query = Budget::with(['user:id,name,email', 'category:id,name', 'family:id,name'])
+            ->whereIn('family_id', $this->familyIdsInScope())
+            ->whereNotNull('user_id');
 
-    if ($family) {
-        $budgets = Budget::with(['user:id,name,email', 'category:id,name'])
-            ->where('family_id', $family->id)
-            ->whereNotNull('user_id')
-            ->get();
+        if ($request->filled('family_id')) {
+            $query->where('family_id', $request->family_id);
+        }
+        $budgets = $query->get();
     } else {
         $budgets = Budget::with('category:id,name')
             ->where('user_id', $user->id)
             ->get();
     }
 
-    return view('dashboard.assigned_budgets', compact('budgets'));
+    $families = $this->familiesInScope();
+
+    return view('dashboard.assigned_budgets', compact('budgets', 'families'));
 }
 
-public function MyExpenses()
+public function MyExpenses(Request $request)
 {
     $user = auth()->user();
 
@@ -70,15 +85,31 @@ public function MyExpenses()
         return redirect()->route('login')->with('error', 'Please login to continue.');
     }
 
-    $expenses = Expense::where('user_id', $user->id)
+    $query = Expense::where('user_id', $user->id)
         ->with(['category:id,name', 'budget'])
-        ->get();
+        ->orderBy('date', 'desc');
 
-    return view('dashboard.my_expenses', compact('expenses'));
+    if ($request->filled('from')) {
+        $query->whereDate('date', '>=', $request->from);
+    }
+    if ($request->filled('to')) {
+        $query->whereDate('date', '<=', $request->to);
+    }
+    if ($request->filled('q')) {
+        $query->where('title', 'like', '%' . $request->q . '%');
+    }
+    if ($request->filled('category_id')) {
+        $query->where('category_id', $request->category_id);
+    }
+
+    $expenses = $query->paginate(20)->withQueryString();
+    $categories = Category::whereNull('user_id')->orWhere('user_id', $user->id)->get();
+
+    return view('dashboard.my_expenses', compact('expenses', 'categories'));
 }
 
 
-   public function FamilyExpenses()
+   public function FamilyExpenses(Request $request)
 {
     $user = auth()->user();
 
@@ -86,24 +117,42 @@ public function MyExpenses()
         return redirect()->route('login')->with('error', 'Please login to continue.');
     }
 
-    $family = Family::where('father_id', $user->id)->first();
+    $familyIds = $this->familyIdsInScope();
 
-    if (!$family) {
+    if (empty($familyIds)) {
         return redirect()->back()->with('error', 'No family found for this user.');
     }
 
-    $memberIds = FamilyMember::where('family_id', $family->id)->pluck('user_id');
+    $memberIds = FamilyMember::whereIn('family_id', $familyIds)->pluck('user_id');
 
-     $expenses = Expense::whereIn('user_id', $memberIds)
+    $query = Expense::whereIn('user_id', $memberIds)
         ->with([
             'user:id,name',
             'category:id,name',
-            'budget.category:id,name', 
+            'budget.category:id,name',
         ])
-        ->get();
+        ->orderBy('date', 'desc');
 
+    if ($request->filled('from')) {
+        $query->whereDate('date', '>=', $request->from);
+    }
+    if ($request->filled('to')) {
+        $query->whereDate('date', '<=', $request->to);
+    }
+    if ($request->filled('q')) {
+        $query->where('title', 'like', '%' . $request->q . '%');
+    }
+    if ($request->filled('user_id')) {
+        $query->where('user_id', $request->user_id);
+    }
+    if ($request->filled('approved')) {
+        $query->where('approved', (bool) $request->approved);
+    }
 
-    return view('dashboard.family_expenses', compact('expenses'));
+    $expenses = $query->paginate(20)->withQueryString();
+    $members = FamilyMember::with('user:id,name')->whereIn('family_id', $familyIds)->get();
+
+    return view('dashboard.family_expenses', compact('expenses', 'members'));
 }
 
 
@@ -127,41 +176,68 @@ public function MyExpenses()
 
   public function Categories()
 {
-    $defaultCategories = Category::whereNull('user_id')->get();
-    $userCategories = Category::where('user_id', auth()->id())->get();
+    $default = Category::whereNull('user_id')->get();
+    $custom = Category::where('user_id', auth()->id())->get();
 
-    return view('dashboard.categories', [
-        'defaultCategories' => $defaultCategories,
-        'userCategories' => $userCategories
-    ]);
+    return view('dashboard.categories', compact('default', 'custom'));
 }
 
 
 
-public function MyRequests()
+public function MyRequests(Request $request)
 {
-    $requests = FundRequest::where('user_id', auth()->id())
+    $query = FundRequest::where('user_id', auth()->id())
         ->with('category')
-        ->orderBy('created_at', 'desc')
-        ->get();
+        ->orderBy('created_at', 'desc');
+
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+    if ($request->filled('from')) {
+        $query->whereDate('created_at', '>=', $request->from);
+    }
+    if ($request->filled('to')) {
+        $query->whereDate('created_at', '<=', $request->to);
+    }
+
+    $requests = $query->paginate(15)->withQueryString();
 
     return view('dashboard.my_requests', compact('requests'));
 }
 
-public function FamilyRequests()
+public function FamilyRequests(Request $request)
 {
-    $family = Family::where('father_id', auth()->id())->first();
+    $familyIds = $this->familyIdsInScope();
 
-    if (!$family) {
-        return view('dashboard.family_requests', ['requests' => []]); // Ya koi message show karo
+    if (empty($familyIds)) {
+        return view('dashboard.family_requests', ['requests' => collect(), 'members' => collect()]);
     }
 
-    $requests = FundRequest::where('family_id', $family->id)
-        ->with(['category:id,name', 'user:id,name,email'])
-        ->orderBy('created_at', 'desc')
-        ->get();
+    $query = FundRequest::whereIn('family_id', $familyIds)
+        ->with(['category:id,name', 'user:id,name,email', 'family:id,name'])
+        ->orderBy('created_at', 'desc');
 
-    return view('dashboard.family_requests', compact('requests'));
+    if ($request->filled('family_id')) {
+        $query->where('family_id', $request->family_id);
+    }
+
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+    if ($request->filled('user_id')) {
+        $query->where('user_id', $request->user_id);
+    }
+    if ($request->filled('from')) {
+        $query->whereDate('created_at', '>=', $request->from);
+    }
+    if ($request->filled('to')) {
+        $query->whereDate('created_at', '<=', $request->to);
+    }
+
+    $requests = $query->paginate(15)->withQueryString();
+    $members = FamilyMember::with('user:id,name')->whereIn('family_id', $familyIds)->get();
+
+    return view('dashboard.family_requests', compact('requests', 'members'));
 }
 
 // 1. Loan Categories View
@@ -174,10 +250,14 @@ public function LoanCategories()
 // 2. Loans View (with family filtering like API)
 public function Loans()
 {
-    $family = Family::where('father_id', Auth::id())->firstOrFail();
+    $familyIds = $this->familyIdsInScope();
 
-    $loans = Loan::with('category')
-        ->where('family_id', $family->id)
+    if (empty($familyIds)) {
+        return redirect()->route('admin.dashboard')->with('error', 'No family found.');
+    }
+
+    $loans = Loan::with(['category', 'family:id,name'])
+        ->whereIn('family_id', $familyIds)
         ->get();
 
     return view('dashboard.loans', compact('loans'));
@@ -205,13 +285,14 @@ public function LoanRepayments($loan_id)
 public function MyContributions()
 {
     $user = Auth::user();
-    $family = Family::where('father_id', $user->id)->first();
+    $isHeadOrSuper = $this->isSuperadmin() || Family::where('father_id', $user->id)->exists();
 
-    if ($family) {
-        $memberIds = $family->members()->pluck('user_id');
+    if ($isHeadOrSuper) {
+        $memberIds = FamilyMember::whereIn('family_id', $this->familyIdsInScope())->pluck('user_id');
 
         $contributions = LoanContribution::with([
             'loan.category:id,name',
+            'loan.family:id,name',
             'user:id,name'
         ])
         ->whereIn('user_id', $memberIds)
@@ -234,20 +315,18 @@ public function MyContributions()
    public function FamilyGoals()
 {
     $user = Auth::user();
-    $family = Family::where('father_id', $user->id)->first();
+    $isHeadOrSuper = $this->isSuperadmin() || Family::where('father_id', $user->id)->exists();
 
-    if ($family) {
-        // Father → show all family goals
-        $goals = Goal::with(['user:id,name', 'contributions'])
+    if ($isHeadOrSuper) {
+        $goals = Goal::with(['user:id,name', 'family:id,name', 'contributions'])
             ->where('type', 'family')
-            ->where('family_id', $family->id)
+            ->whereIn('family_id', $this->familyIdsInScope())
             ->get()
             ->map(function ($goal) {
                 $goal->collected_amount = $goal->contributions->sum('amount');
                 return $goal;
             });
     } else {
-        // Mother/Child → show own family goals
         $goals = Goal::with('contributions')
             ->where('type', 'family')
             ->where('user_id', $user->id)
@@ -264,14 +343,15 @@ public function MyContributions()
 public function MyGoals()
 {
     $user = Auth::user();
-    $family = $user->familyMember?->family ?? Family::where('father_id', $user->id)->first();
+    $isHeadOrSuper = $this->isSuperadmin() || Family::where('father_id', $user->id)->exists();
 
-    if ($family && $family->father_id === $user->id) {
-        // Father → all members' personal goals
-        $memberIds = FamilyMember::where('family_id', $family->id)->pluck('user_id')->toArray();
-        $memberIds[] = $user->id;
+    if ($isHeadOrSuper) {
+        $memberIds = FamilyMember::whereIn('family_id', $this->familyIdsInScope())->pluck('user_id')->toArray();
+        if (!in_array($user->id, $memberIds, true)) {
+            $memberIds[] = $user->id;
+        }
 
-        $goals = Goal::with(['user:id,name', 'contributions'])
+        $goals = Goal::with(['user:id,name', 'family:id,name', 'contributions'])
             ->whereIn('user_id', $memberIds)
             ->where('type', 'personal')
             ->get()
@@ -280,7 +360,6 @@ public function MyGoals()
                 return $goal;
             });
     } else {
-        // Mother/Child → their own goals
         $goals = Goal::with('contributions')
             ->where('user_id', $user->id)
             ->where('type', 'personal')
@@ -313,7 +392,7 @@ public function Savings()
 {
     $saving = Saving::with('transactions')->firstOrCreate(
         ['user_id' => Auth::id()],
-        ['amount' => 0]
+        ['total' => 0]
     );
 
     return view('dashboard.savings', compact('saving'));
@@ -427,9 +506,14 @@ public function Post(Post $post)
 
    public function endOfMonthRolloverView(Request $request)
 {
+    $user = Auth::user();
     $month = $request->input('month', Carbon::now()->format('Y-m'));
 
-    $budgets = Budget::with('category', 'transactions')->where('month', $month)->get();
+    $budgets = Budget::with('category', 'transactions')
+        ->where('user_id', $user->id)
+        ->where('month', $month)
+        ->get();
+
     $totalRemaining = 0;
 
     foreach ($budgets as $budget) {

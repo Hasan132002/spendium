@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\Comment;
+use App\Notifications\NewReaction;
 use Illuminate\Support\Facades\Auth;
 
 class ReactionController extends Controller
@@ -33,6 +34,10 @@ class ReactionController extends Controller
             'user_id' => $user->id,
             'type' => 'like',
         ]);
+
+        if (isset($model->user_id) && $model->user_id !== $user->id) {
+            $model->user?->notify(new NewReaction($reaction->load('user')));
+        }
 
         return $this->success('Reaction added', $reaction);
     }

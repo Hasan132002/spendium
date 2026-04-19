@@ -27,7 +27,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($defaultCategories as $index => $category)
+                        @forelse ($default as $index => $category)
                             <tr class="border-b border-gray-100 dark:border-gray-800">
                                 <td class="px-5 py-4">{{ $index + 1 }}</td>
                                 <td class="px-5 py-4">{{ $category->name }}</td>
@@ -56,7 +56,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($userCategories as $index => $category)
+                        @forelse ($custom as $index => $category)
                             <tr class="border-b border-gray-100 dark:border-gray-800">
                                 <td class="px-5 py-4">{{ $index + 1 }}</td>
                                 <td class="px-5 py-4">{{ $category->name }}</td>

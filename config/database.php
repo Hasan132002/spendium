@@ -78,21 +78,6 @@ return [
             'sslmode' => 'prefer',
         ],
 
-        'sap' => [
-            'driver' => env('SAPP_DB_CONNECTION', 'sqlsrv'), 
-            'host' => env('SAPP_DB_HOST', '10.94.199.198'),
-            'port' => env('SAPP_DB_PORT', '1433'),
-            'database' => env('SAPP_DB_DATABASE', 'Azure_Tech_PRD'),
-            'username' => env('SAPP_DB_USERNAME', 'sa'),
-            'password' => env('SAPP_DB_PASSWORD', 'Super@123'),
-            'charset' => env('SAPP_DB_CHARSET', 'utf8'),
-            'prefix' => '',
-            'prefix_indexes' => true,
-            // 'encrypt' => env('SAPP_DB_ENCRYPT', 'false'),
-            // 'trust_server_certificate' => env('SAPP_DB_TRUST_SERVER_CERTIFICATE', 'true'),
-        ],
-
-
     ],
 
     /*

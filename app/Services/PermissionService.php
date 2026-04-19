@@ -64,20 +64,6 @@ class PermissionService
                 ],
             ],
             [
-                'group_name' => 'sale-orders',
-                'permissions' => [
-                    'sale-orders.index',
-                    'sale-orders.create',
-                    'sale-orders.store',
-                    'sale-orders.edit',
-                    'sale-orders.update',
-                    'sale-orders.destroy',
-                    'sale-orders.view',
-                    'sale-orders.whatsapp',
-                    
-                ],
-            ],
-            [
                 'group_name' => 'profile',
                 'permissions' => [
                     'profile.view',
@@ -105,6 +91,39 @@ class PermissionService
                 'permissions' => [
                     'translations.view',
                     'translations.edit',
+                ],
+            ],
+            [
+                'group_name' => 'family',
+                'permissions' => [
+                    'family.budget.view',
+                    'family.budget.create',
+                    'family.budget.assign',
+                    'family.expense.view',
+                    'family.expense.approve',
+                    'family.fund_request.view',
+                    'family.fund_request.approve',
+                    'family.goal.view',
+                    'family.goal.manage',
+                    'family.loan.manage',
+                    'family.income.view',
+                    'family.reports.view',
+                    'family.member.invite',
+                    'family.member.remove',
+                    'family.member.edit',
+                ],
+            ],
+            [
+                'group_name' => 'personal',
+                'permissions' => [
+                    'personal.expense.manage',
+                    'personal.fund_request.create',
+                    'personal.savings.manage',
+                    'personal.goal.manage',
+                    'personal.loan.contribute',
+                    'personal.income.manage',
+                    'personal.post.manage',
+                    'personal.profile.view',
                 ],
             ],
         ];

@@ -23,10 +23,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // Schedule the demo database refresh command every 15 minutes in demo mode.
-        $schedule->command('notify:whatsapp-ovpm')->everyMinute();
-
-        // $schedule->command('demo:refresh-database')->everyFifteenMinutes();
+        $schedule->command('incomes:process-recurring')->dailyAt('00:15');
     }
 
     /**

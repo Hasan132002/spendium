@@ -12,7 +12,7 @@ class SavingsController extends Controller
 {
     public function mySavings()
     {
-        $saving = Saving::firstOrCreate(['user_id' => Auth::id()], ['amount' => 0]);
+        $saving = Saving::firstOrCreate(['user_id' => Auth::id()], ['total' => 0]);
         return $this->success('Savings fetched successfully', $saving);
     }
 
@@ -73,13 +73,13 @@ class SavingsController extends Controller
             'amount' => 'required|numeric|min:1'
         ]);
 
-        $saving = Saving::firstOrCreate(['user_id' => Auth::id()]);
+        $saving = Saving::firstOrCreate(['user_id' => Auth::id()], ['total' => 0]);
 
-        if ($saving->amount < $request->amount) {
+        if ($saving->total < $request->amount) {
             return $this->error('Insufficient savings', null, 422);
         }
 
-        $saving->amount -= $request->amount;
+        $saving->total -= $request->amount;
         $saving->save();
 
         GoalContribution::create([
@@ -116,8 +116,8 @@ class SavingsController extends Controller
         }
 
         if ($totalRemaining > 0) {
-            $saving = Saving::firstOrCreate(['user_id' => $user->id]);
-            $saving->amount += $totalRemaining;
+            $saving = Saving::firstOrCreate(['user_id' => $user->id], ['total' => 0]);
+            $saving->total += $totalRemaining;
             $saving->save();
 
             SavingsTransaction::create([

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\Post;
+use App\Notifications\NewComment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,6 +20,10 @@ class CommentController extends Controller
             'user_id' => Auth::id(),
             'content' => $request->content,
         ]);
+
+        if ($post->user_id !== Auth::id()) {
+            $post->user?->notify(new NewComment($comment->load('user')));
+        }
 
         return $this->success('Comment added successfully', $comment, 201);
     }

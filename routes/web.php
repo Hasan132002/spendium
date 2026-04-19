@@ -12,7 +12,11 @@ use App\Http\Controllers\Backend\ProfilesController;
 use App\Http\Controllers\Backend\TranslationController;
 use App\Http\Controllers\Backend\UserLoginAsController;
 use App\Http\Controllers\Backend\LocaleController;
-use App\Http\Controllers\Backend\SaleOrderController;
+use App\Http\Controllers\Backend\FamilyMemberController;
+use App\Http\Controllers\Backend\NotificationController;
+use App\Http\Controllers\Backend\IncomeController;
+use App\Http\Controllers\Backend\ReportController;
+use App\Http\Controllers\Auth\FamilyInviteController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Backend\AllAppController;
 use App\Http\Controllers\AIController;
@@ -44,21 +48,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::post('/modules/upload', [ModulesController::class, 'upload'])->name('modules.upload');
     Route::delete('/modules/{module}', [ModulesController::class, 'destroy'])->name('modules.delete');
 
-    // Sale Order Routes
-    Route::get('/sale-orders', [SaleOrderController::class, 'index'])->name('sale-orders.index');
-    Route::get('/sale-orders/view/{id}', [SaleOrderController::class, 'view'])->name('sale-orders.view');
-
-    // Route::get('/sale-orders/create', [SaleOrderController::class, 'create'])->name('sale-orders.create');
-    Route::get('/sale-orders/create/{id?}', [SaleOrderController::class, 'create'])->name('sale-orders.create');
-    Route::put('/sale-orders/update/{id}', [SaleOrderController::class, 'update'])->name('sale-orders.update');
-
-    Route::post('/sale-orders', [SaleOrderController::class, 'store'])->name('sale-orders.store');
-    Route::get('/sale-orders/{docEntry}/edit', [SaleOrderController::class, 'create'])->name('sale-orders.edit');
-    Route::put('/sale-orders/{docEntry}', [SaleOrderController::class, 'update'])->name('sale-orders.update');
-
-    Route::delete('/sale-orders/{id}', [SaleOrderController::class, 'destroy'])->name('sale-orders.destroy');
-
-    
     // Settings Routes.
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingsController::class, 'store'])->name('settings.store');
@@ -86,8 +75,43 @@ Route::get('/budget/family', [AllAppController::class, 'familyBudget'])->name('b
     Route::get('/expenses/my', [AllAppController::class, 'myExpenses']);
     Route::get('/expenses/family', [AllAppController::class, 'familyExpenses']);
 
-    // ✅ Family
-    Route::get('/family/members', [AllAppController::class, 'Members']);
+    // ✅ Reports / Analytics
+    Route::group(['prefix' => 'reports', 'as' => 'reports.'], function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/export/expenses', [ReportController::class, 'exportExpenses'])->name('export-expenses');
+        Route::get('/export/incomes', [ReportController::class, 'exportIncomes'])->name('export-incomes');
+    });
+
+    // ✅ Incomes
+    Route::group(['prefix' => 'incomes', 'as' => 'incomes.'], function () {
+        Route::get('/my', [IncomeController::class, 'myIncomes'])->name('my');
+        Route::get('/family', [IncomeController::class, 'familyIncomes'])->name('family');
+        Route::get('/create', [IncomeController::class, 'create'])->name('create');
+        Route::post('/', [IncomeController::class, 'store'])->name('store');
+        Route::delete('/{id}', [IncomeController::class, 'destroy'])->name('destroy');
+    });
+
+    // ✅ Notifications
+    Route::group(['prefix' => 'notifications', 'as' => 'notifications.'], function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/latest', [NotificationController::class, 'latest'])->name('latest');
+        Route::get('/{id}/read', [NotificationController::class, 'markRead'])->name('mark-read');
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllRead'])->name('mark-all-read');
+        Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('destroy');
+    });
+
+    // ✅ Family Management (new controller with full CRUD + invitations)
+    Route::group(['prefix' => 'family', 'as' => 'family.'], function () {
+        Route::get('/members', [FamilyMemberController::class, 'index'])->name('members.index');
+        Route::get('/members/invite', [FamilyMemberController::class, 'showInviteForm'])->name('members.invite');
+        Route::post('/members/invite', [FamilyMemberController::class, 'storeInvite'])->name('members.store-invite');
+        Route::get('/members/{member}/edit', [FamilyMemberController::class, 'showChangeRoleForm'])->name('members.change-role-form');
+        Route::put('/members/{member}', [FamilyMemberController::class, 'changeRole'])->name('members.change-role');
+        Route::delete('/members/{member}', [FamilyMemberController::class, 'remove'])->name('members.remove');
+        Route::post('/invitations/{invitation}/resend', [FamilyMemberController::class, 'resendInvite'])->name('invitations.resend');
+        Route::delete('/invitations/{invitation}', [FamilyMemberController::class, 'revokeInvite'])->name('invitations.revoke');
+        Route::post('/transfer-head', [FamilyMemberController::class, 'transferHead'])->name('transfer-head');
+    });
 
     // ✅ Categories
     Route::get('/categories/all', [AllAppController::class, 'categories']);
@@ -147,5 +171,11 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth'
 });
 
 Route::get('/locale/{lang}', [LocaleController::class, 'switch'])->name('locale.switch');
+
+/**
+ * Public family invitation acceptance routes (no auth).
+ */
+Route::get('/family/invite/{token}', [FamilyInviteController::class, 'show'])->name('family.invite.show');
+Route::post('/family/invite/{token}', [FamilyInviteController::class, 'accept'])->name('family.invite.accept');
 
 

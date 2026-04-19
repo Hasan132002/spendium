@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\{LoanCategory, Loan, LoanRepayment, LoanContribution, Family};
+use App\Models\{LoanCategory, Loan, LoanRepayment, LoanContribution, Family, User};
+use App\Notifications\LoanContributionSubmitted;
+use App\Notifications\LoanContributionApproved;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -25,6 +27,14 @@ class LoanContributionController extends Controller
             'note' => $request->note,
             'status' => 'pending'
         ]);
+
+        $loan = Loan::find($request->loan_id);
+        if ($loan && $loan->family_id) {
+            $family = Family::find($loan->family_id);
+            if ($family && $family->father_id !== Auth::id()) {
+                User::find($family->father_id)?->notify(new LoanContributionSubmitted($contribution->load('user')));
+            }
+        }
 
         return $this->success('Contribution offered', $contribution);
     }
@@ -86,6 +96,8 @@ class LoanContributionController extends Controller
             'date' => Carbon::now(),
             'note' => 'Contribution by ' . $contribution->user->name
         ]);
+
+        User::find($contribution->user_id)?->notify(new LoanContributionApproved($contribution));
 
         return $this->success('Contribution approved and applied to loan');
     }

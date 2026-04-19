@@ -4,7 +4,8 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\{Goal, GoalContribution, Saving, SavingsTransaction, Budget, BudgetTransaction, Family, FamilyMember};
+use App\Models\{Goal, GoalContribution, Saving, SavingsTransaction, Budget, BudgetTransaction, Family, FamilyMember, User};
+use App\Notifications\GoalContributionAdded;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -175,14 +176,15 @@ class GoalController extends Controller
             return $this->error('Not enough savings to contribute', null, 422);
         }
 
-        DB::transaction(function () use ($request, $saving, $goal, $user) {
+        $newContribution = null;
+        DB::transaction(function () use ($request, $saving, $goal, $user, &$newContribution) {
             $saving->total -= $request->amount;
             $saving->save();
 
             $goal->saved_amount += $request->amount;
             $goal->save();
 
-            GoalContribution::create([
+            $newContribution = GoalContribution::create([
                 'goal_id' => $goal->id,
                 'user_id' => $user->id,
                 'amount'  => $request->amount,
@@ -197,6 +199,11 @@ class GoalController extends Controller
                 'saving_id' => $saving->id,
             ]);
         });
+
+        // Notify goal owner (if different from contributor)
+        if ($newContribution && $goal->user_id && $goal->user_id !== $user->id) {
+            User::find($goal->user_id)?->notify(new GoalContributionAdded($newContribution));
+        }
 
         return $this->success('Contribution added to goal');
     }

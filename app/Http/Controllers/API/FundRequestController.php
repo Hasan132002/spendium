@@ -4,7 +4,10 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\{FundRequest, Family, Budget, Category, Expense, BudgetTransaction};
+use App\Models\{FundRequest, Family, Budget, Category, Expense, BudgetTransaction, User};
+use App\Notifications\FundRequestSubmitted;
+use App\Notifications\FundRequestApproved;
+use App\Notifications\FundRequestDeclined;
 use Carbon\Carbon;
 
 class FundRequestController extends Controller
@@ -31,6 +34,11 @@ class FundRequestController extends Controller
             'note'        => $request->note,
             'status'      => 'pending',
         ]);
+
+        $family = Family::find($familyMember->family_id);
+        if ($family && $family->father_id) {
+            User::find($family->father_id)?->notify(new FundRequestSubmitted($fund->load('user')));
+        }
 
         return $this->success('Request submitted', $fund);
     }
@@ -93,6 +101,8 @@ class FundRequestController extends Controller
             'approved'    => true
         ]);
 
+        User::find($fund->user_id)?->notify(new FundRequestApproved($fund));
+
         return $this->success('Fund approved & assigned with expense recorded');
     }
 
@@ -107,6 +117,8 @@ class FundRequestController extends Controller
 
         $fund->status = 'rejected';
         $fund->save();
+
+        User::find($fund->user_id)?->notify(new FundRequestDeclined($fund));
 
         return $this->success('Fund request declined');
     }

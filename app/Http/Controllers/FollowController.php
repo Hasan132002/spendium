@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Notifications\NewFollower;
 use Illuminate\Support\Facades\Auth;
 
 class FollowController extends Controller
@@ -22,6 +23,7 @@ class FollowController extends Controller
         return $this->success('User unfollowed successfully.');
     } else {
         $authUser->followings()->attach($user->id);
+        $user->notify(new NewFollower($authUser));
         return $this->success('User followed successfully.');
     }
 }

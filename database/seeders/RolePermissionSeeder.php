@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\PermissionService;
 use App\Services\RolesService;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\PermissionRegistrar;
 
 /**
  * Class RolePermissionSeeder.
@@ -29,33 +30,44 @@ class RolePermissionSeeder extends Seeder
      */
     public function run()
     {
+        // Clear any previously cached permissions so fresh ones are visible
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
         // Create all permissions
         $this->command->info('Creating permissions...');
         $this->permissionService->createPermissions();
+
+        // Force Spatie to re-read permissions from DB after creation
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         // Create predefined roles with their permissions
         $this->command->info('Creating predefined roles...');
         $roles = $this->rolesService->createPredefinedRoles();
 
         // Assign superadmin role to superadmin user if exists
-        $user = User::where('username', 'superadmin')->first();
-        if ($user) {
+        $superadmin = User::where('email', 'superadmin@spendium.com')
+            ->orWhere('username', 'superadmin')
+            ->first();
+        if ($superadmin) {
             $this->command->info('Assigning Superadmin role to superadmin user...');
-            $user->assignRole($roles['superadmin']);
+            $superadmin->assignRole($roles['superadmin']);
         }
 
-        // Assign random roles to other users
-        $this->command->info('Assigning random roles to other users...');
-        $availableRoles = ['Admin', 'Editor', 'Subscriber']; // Exclude Superadmin from random assignment
-        $users = User::all();
-        
-        foreach ($users as $user) {
+        // Assign random legacy roles (Admin/Editor/Subscriber) to factory users only.
+        // Named family users get Family Head / Family Member assigned later by FamilySeeder.
+        $this->command->info('Assigning random legacy roles to factory users...');
+        $availableRoles = ['Admin', 'Editor', 'Subscriber'];
+        $factoryUsers = User::where('email', 'not like', '%@spendium.com')->get();
+
+        foreach ($factoryUsers as $user) {
             if (!$user->hasRole('Superadmin')) {
-                // Get a random role from the available roles
                 $randomRole = $availableRoles[array_rand($availableRoles)];
                 $user->assignRole($randomRole);
             }
         }
+
+        // Final flush so subsequent seeders see everything
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         $this->command->info('Roles and Permissions created successfully!');
     }
